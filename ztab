@@ -1,0 +1,35 @@
+#!/bin/sh
+# Launch pdfs in zathura, wrapped in tabbed
+# Usage: ztab [file1] [file2] ...
+# If no files are given, launches fzf+fd to search. If
+# no file is chosen, tabbed and zathura are not launched.
+# If files are given, tabbed and zathura are always launched.
+# File errors will occur as they would when opening in
+# zathura normally.
+
+launch() {
+    # Check if tabbed is already running
+    xid=$(xdotool search --class tabbed)
+    if [ -z "$xid" ]; then
+        xid="$(tabbed -c -d -s)"
+    fi
+
+    # Loop through args and launch each pdf
+    i=1;
+    j=$#;
+    while [ $i -le $j ] 
+    do
+        nohup zathura -e "$xid" "$1" >/dev/null 2>&1 &
+        i=$((i + 1));
+        shift 1;
+    done
+}
+
+j=$#;
+if [ $j -eq 0 ]; then
+    if RESULT="$(fd '.pdf$' | fzf)"; then
+        launch "$RESULT"
+    fi
+else
+    launch "$@"
+fi
